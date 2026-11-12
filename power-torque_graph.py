@@ -1,5 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import style
+
+style.use('seaborn-v0_8-darkgrid')
+
+
 R = 0.055 
 r = 0.045 
 e = 0.010 
@@ -50,23 +55,26 @@ n = 1.4
 volume_ratio = (P_inlet / P_outlet)**(1/n)
 volume_reduction = (1 - volume_ratio) * 100
 #Plot graphs, and display figures
-plt.plot(Theta, Tr)
-plt.xlabel('Theta (rad)')
-plt.ylabel('Torque (Nm)')
-plt.title('Torque Against Theta')
-plt.grid()
+fig, ax1 = plt.subplots()
+fig, ax2 = plt.subplots()
+fig, ax3 = plt.subplots()
 
-plt.plot(Theta, L(Theta))
-plt.xlabel('Theta (rad)')
-plt.ylabel('Exposed Vane Length (m)')
-plt.title('Exposed Vane Length Against Theta')
-plt.grid()
 
-plt.plot(Theta, Power)
-plt.xlabel('Theta (rad)')
-plt.ylabel('Power (W)')
-plt.title('Power Against Theta')
-plt.grid()
+ax1.plot(Theta, Tr)
+ax1.set_xlabel('Theta (rad)')
+ax1.set_ylabel('Torque (Nm)')
+ax1.set_title('Torque Against Theta')
+
+ax2.plot(Theta, L(Theta))
+ax2.set_xlabel('Theta (rad)')
+ax2.set_ylabel('Exposed Vane Length (m)')
+ax2.set_title('Exposed Vane Length Against Theta')
+
+ax3.plot(Theta, Power)
+ax3.set_xlabel('Theta (rad)')
+ax3.set_ylabel('Power (W)')
+ax3.set_title('Power Against Theta')
+
 plt.show()
 print(f"Polytropic exponent: {n}")
 print(f"Final volume: {volume_ratio*100:.2f}% of initial volume")
