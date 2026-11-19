@@ -13,27 +13,31 @@ h = 0.020
 a = 0.045 
 Phi = 0.2 
 #Input operating conditions
-P_inlet = float(input("Enter inlet pressure (Pa): "))
-P_outlet = float(input("Enter outlet pressure (Pa): "))
+P_inlet = 100000
+P_outlet = 239225
 RPM = float(input("Enter compressor speed (RPM): "))
 # Convert RPM into angular velocity
 omega = 2*np.pi*RPM/60
 #Exposed vane length
 def L(Theta):
-    return e*np.cos(Theta) + np.sqrt(R**2 - (e*np.sin(Theta))**2) - r
-
+    return (-e*np.cos(Theta) + np.sqrt(R**2 - (e*np.sin(Theta))**2) - r)
+    
 #Pressure functions
 def P1(Theta):
     return (P_inlet + P_outlet)/2 + (P_outlet-P_inlet)/2*np.sin(Theta)
+
 def P2(Theta):
     return (P_inlet + P_outlet)/2 + (P_outlet-P_inlet)/2*np.sin(Theta + delta)
+
 def P3(Theta):
     return (P_inlet + P_outlet)/2 + (P_outlet-P_inlet)/2*np.sin(Theta + 2*delta)
+
 def P4(Theta):
     return (P_inlet + P_outlet)/2 + (P_outlet-P_inlet)/2*np.sin(Theta + 3*delta)
+
 def P5(Theta):
     return (P_inlet + P_outlet)/2 + (P_outlet-P_inlet)/2*np.sin(Theta + 4*delta)
-#Angles
+    
 Theta = np.linspace(0, 2*np.pi, 1000)
 pressures = [P1, P2, P3, P4, P5]
 
@@ -44,16 +48,30 @@ Tr = np.zeros_like(Theta)
 for i in range(5):
     alpha = i*delta
     next_pressure = (i+1) % 5
-    Fp = L(Theta+alpha)*h*(pressures[next_pressure](Theta)-pressures[i](Theta))
-    Tr += Fp*(a-(L(Theta+alpha)/2)-e*np.cos(Phi+alpha))
+    Fp = L(Theta+alpha)*h*(pressures[i](Theta)-pressures[next_pressure](Theta))
+    moment_arm = a - (L(Theta+alpha)/2) - e*np.cos(Phi+alpha)
+    Tr += Fp*moment_arm
+    
+Maximum_torque = np.max(np.abs(Tr))
+    
 #Calc Power Reqs
-Power = Tr * omega
-Average_power = np.mean(np.abs(Power))
+Power = Tr*omega
+Average_power = np.mean(Power)
 Maximum_power = np.max(np.abs(Power))
 #Calculate required volume reduction for pressure ratio
 n = 1.4
 volume_ratio = (P_inlet / P_outlet)**(1/n)
 volume_reduction = (1 - volume_ratio) * 100
+
+#Power against RPM
+RPM_values = np.linspace(0, 3000, 100)
+Power_values = []
+for rpm in RPM_values:
+    omega = 2*np.pi*rpm/60
+    Power1 = Maximum_torque*omega
+    Power_values.append(Power1)
+
+
 #Plot graphs, and display figures
 fig, ax1 = plt.subplots()
 fig, ax2 = plt.subplots()
@@ -75,11 +93,18 @@ ax3.set_xlabel('Theta (rad)')
 ax3.set_ylabel('Power (W)')
 ax3.set_title('Power Against Theta')
 
+plt.figure()
+plt.plot(RPM_values, Power_values)
+plt.xlabel("RPM")
+plt.ylabel("Power (W)")
+plt.title("Power Consumption Against RPM")
+plt.grid(True)
+
 plt.show()
-print(f"Polytropic exponent: {n}")
+print(f"Maximum torque produced: {Maximum_torque:.2f} Nm")
 print(f"Final volume: {volume_ratio*100:.2f}% of initial volume")
 print(f"Volume reduction required: {volume_reduction:.2f}%")
 print(f"Angular velocity: {omega:.2f} rad/s")
 print(f"Time per revolution: {60/RPM:.4f} seconds")
-print(f"Average power requirement: {Average_power:.2f} W")
+print(f"Average power requirement over one revolution: {Average_power:.2f} W")
 print(f"Maximum power requirement: {Maximum_power:.2f} W")
